@@ -18,3 +18,4 @@ pyqrcode
 pafy
 youtube_dl
 humanize
+ffmpy
