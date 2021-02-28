@@ -19,3 +19,5 @@ pafy
 youtube_dl
 humanize
 ffmpy
+zalgo_text
+humanfriendly
