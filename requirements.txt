@@ -16,3 +16,5 @@ urllib3==1.23
 Naked
 pyqrcode
 pafy
+youtube_dl
+humanize
