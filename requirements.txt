@@ -22,3 +22,4 @@ ffmpy
 zalgo_text
 humanfriendly
 html5lib
+wikipedia
