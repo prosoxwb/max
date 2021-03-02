@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from TEAM_BOT_MAX.ttypes import Message
+from akad.ttypes import Message
 from .auth import Auth
 from .models import Models
 from .talk import Talk
@@ -7,10 +7,12 @@ from .square import Square
 from .call import Call
 from .timeline import Timeline
 from .server import Server
-from .shop import Shop
 from .liff import Liff
+from .shop import Shop
+from .callback import Callback
+from .e2ee import E2EE
 
-class TEAMBOTMAXv2(Auth, Models, Talk, Square, Call, Timeline, Shop, Liff):
+class LINE(Auth, Models, Talk, Square, Call, Timeline, Liff, Shop, E2EE):
 
     def __init__(self, idOrAuthToken=None, passwd=None, **kwargs):
         """
@@ -26,6 +28,8 @@ class TEAMBOTMAXv2(Auth, Models, Talk, Square, Call, Timeline, Shop, Liff):
             - **channelId**: Channel ID to login Timeline. Default: None
             - **keepLoggedIn**: Keep logged in if succesfull login. Default: True
             - **customThrift**: Increase speed thrift with custom thrift. Default: False
+            - **callback**: Use custom callback. Default: None
+            - **e2ee**: Use e2ee login. Default: False
         :return:
         """
         self.certificate = kwargs.pop('certificate', None)
@@ -36,7 +40,16 @@ class TEAMBOTMAXv2(Auth, Models, Talk, Square, Call, Timeline, Shop, Liff):
         self.channelId = kwargs.pop('channelId', None)
         self.keepLoggedIn = kwargs.pop('keepLoggedIn', True)
         self.customThrift = kwargs.pop('customThrift', False)
+        self.ignoreSquare = kwargs.pop('ignoreSquare', True)
+        self.e2ee = kwargs.pop('e2ee', False)
+        callback = kwargs.pop('callback', None)
+        if self.e2ee:
+            self._e2ee = E2EE()
+        else:
+            self._e2ee = None
         Auth.__init__(self)
+        if callback and callable(callback):
+            self.callback = Callback(callback)
         if not (idOrAuthToken or idOrAuthToken and passwd):
             self.loginWithQrCode()
         if idOrAuthToken and passwd:
@@ -56,5 +69,5 @@ class TEAMBOTMAXv2(Auth, Models, Talk, Square, Call, Timeline, Shop, Liff):
         Square.__init__(self)
         Call.__init__(self)
         Timeline.__init__(self)
-        Shop.__init__(self)
         Liff.__init__(self)
+        Shop.__init__(self)

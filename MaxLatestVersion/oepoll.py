@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from TEAM_BOT_MAX.ttypes import TalkException, ShouldSyncException
-from .client import TEAMBOTMAXv2
+from akad.ttypes import TalkException, ShouldSyncException
+from .client import LINE
 from threading import Thread
 from types import *
 
@@ -13,8 +13,8 @@ class OEPoll(object):
     __squareSyncToken = {}
 
     def __init__(self, client):
-        if type(client) is not TEAMBOTMAXv2:
-            raise Exception('You need to set TEAMBOTMAXv2 instance to initialize OEPoll')
+        if type(client) is not LINE:
+            raise Exception('You need to set LINE instance to initialize OEPoll')
         self.client = client
         self.threads = []
 

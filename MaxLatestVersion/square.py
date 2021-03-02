@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from TEAM_BOT_MAX.ttypes import *
+from akad.ttypes import *
 from random import randint
-import json
 
 def loggedIn(func):
     def checkLogin(*args, **kwargs):
@@ -9,9 +8,9 @@ def loggedIn(func):
             if args[0].isLogin:
                 return func(*args, **kwargs)
             else:
-                args[0].callback.other('You want to call the function, you must login to LINE')
+                args[0].callback.default('You want to call the function, you must login to LINE')
         else:
-            args[0].callback.other('Your LINE account doesn\'t support Square')
+            args[0].callback.default('Your LINE account doesn\'t support Square')
     return checkLogin
 
 class Square(object):
@@ -21,9 +20,13 @@ class Square(object):
     def __init__(self):
         self.isLogin = True
         try:
-            self.isSupportSquare = True
-            self.squares    = self.getJoinedSquares().squares
-            self.squareObsToken = self.acquireEncryptedAccessToken(2).split('\x1e')[1]
+            if self.ignoreSquare:
+                self.isSupportSquare = False
+                self.log('Square login ignored')
+            else:
+                self.isSupportSquare = True
+                self.squares    = self.getJoinedSquares().squares
+                self.squareObsToken = self.acquireEncryptedAccessToken(2).split('\x1e')[1]
         except:
             self.isSupportSquare = False
             self.log('Your LINE account doesn\'t support Square')
@@ -37,8 +40,7 @@ class Square(object):
     @loggedIn
     def sendSquareImageWithURL(self, squareChatMid, url):
         path = self.downloadFileURL(url, 'path')
-        self.sendSquareImage(squareChatMid, path)
-        return self.deleteFile(path)
+        return self.sendSquareImage(squareChatMid, path)
 
     @loggedIn
     def sendSquareGIF(self, squareChatMid, path):
@@ -47,8 +49,7 @@ class Square(object):
     @loggedIn
     def sendSquareGIFWithURL(self, squareChatMid, url):
         path = self.downloadFileURL(url, 'path')
-        self.sendSquareGIF(squareChatMid, path)
-        return self.deleteFile(path)
+        return self.sendSquareGIF(squareChatMid, path)
 
     @loggedIn
     def sendSquareVideo(self, squareChatMid, path):
@@ -57,8 +58,7 @@ class Square(object):
     @loggedIn
     def sendSquareVideoWithURL(self, squareChatMid, url):
         path = self.downloadFileURL(url, 'path')
-        self.sendSquareVideo(squareChatMid, path)
-        return self.deleteFile(path)
+        return self.sendSquareVideo(squareChatMid, path)
 
     @loggedIn
     def sendSquareAudio(self, squareChatMid, path):
@@ -67,8 +67,7 @@ class Square(object):
     @loggedIn
     def sendSquareAudioWithURL(self, squareChatMid, url):
         path = self.downloadFileURL(url, 'path')
-        self.sendSquareAudio(squareChatMid, path)
-        return self.deleteFile(path)
+        return self.sendSquareAudio(squareChatMid, path)
 
     @loggedIn
     def sendSquareFile(self, squareChatMid, path, filename=''):
@@ -77,8 +76,7 @@ class Square(object):
     @loggedIn
     def sendSquareFileWithURL(self, squareChatMid, url, filename=''):
         path = self.downloadFileURL(url, 'path')
-        self.sendSquareFile(squareChatMid, path, filename)
-        return self.deleteFile(path)
+        return self.sendSquareFile(squareChatMid, path, filename)
 
     """Square Message"""
         
@@ -139,106 +137,52 @@ class Square(object):
         return self.square.sendMessage(rq)
 
     @loggedIn
-    def sendSquareMention(self, squareChatMid, text="", mids=[]):
+    def sendSquareMention(self, to, mid, firstmessage='', lastmessage=''):
         arrData = ""
+        text = "%s " %(str(firstmessage))
         arr = []
-        mention = "@Dzin "
-        if mids == []:
-            raise Exception("Invalid mids")
-        if "@!" in text:
-            if text.count("@!") != len(mids):
-                raise Exception("Invalid mids")
-            texts = text.split("@!")
-            textx = ''
-            h = ''
-            for mid in range(len(mids)):
-                h+= str(texts[mid].encode('unicode-escape'))
-                textx += str(texts[mid])
-                if h != textx:
-                    if h.count('U0') % 2 == 0:slen = len(textx)-(h.count('U0')//2);elen = (len(textx)-(h.count('U0')//2)) + 5
-                    elif h.count('U0') % 3 == 0:slen = len(textx)-(h.count('U0')//3);elen = (len(textx)-(h.count('U0')//3)) + 5
-                    else:slen = len(textx)+h.count('U0');elen = len(textx)+h.count('U0') + 5
-                else:slen = len(textx);elen = len(textx) + 13
-                arrData = {'S':str(slen), 'E':str(elen), 'M':mids[mid]}
-                arr.append(arrData)
-                textx += mention
-            textx += str(texts[len(mids)])
-        else:
-            textx = ''
-            slen = len(textx)
-            elen = len(textx) + 18
-            arrData = {'S':str(slen), 'E':str(elen - 4), 'M':mids[0]}
-            arr.append(arrData)
-            textx += mention + str(text)
-        self.sendSquareMessage(squareChatMid, textx, {'MENTION': str('{"MENTIONEES":' + json.dumps(arr) + '}')}, 0)
+        mention = "@zeroxyuuki "
+        slen = str(len(text))
+        elen = str(len(text) + len(mention) - 1)
+        arrData = {'S':slen, 'E':elen, 'M':mid}
+        arr.append(arrData)
+        text += mention + str(lastmessage)
+        self.sendSquareMessage(to, text, {'MENTION': str('{"MENTIONEES":' + json.dumps(arr) + '}')}, 0)
 
     @loggedIn
-    def sendSquareMentionWithFooter(self, to, text="",ps='', mids=[]):
+    def sendSquareMentionV2(self, to, text="", mids=[], isUnicode=False):
         arrData = ""
         arr = []
-        mention = "@Dzin "
+        mention = "@zeroxyuuki "
         if mids == []:
             raise Exception("Invalid mids")
         if "@!" in text:
             if text.count("@!") != len(mids):
                 raise Exception("Invalid mids")
             texts = text.split("@!")
-            textx = ''
-            h = ''
-            for mid in range(len(mids)):
-                h+= str(texts[mid].encode('unicode-escape'))
-                textx += str(texts[mid])
-                if h != textx:
-                    if h.count('U0') % 2 == 0:slen = len(textx)-(h.count('U0')//2);elen = (len(textx)-(h.count('U0')//2)) + 5
-                    elif h.count('U0') % 3 == 0:slen = len(textx)-(h.count('U0')//3);elen = (len(textx)-(h.count('U0')//3)) + 5
-                    else:slen = len(textx)+h.count('U0');elen = len(textx)+h.count('U0') + 13
-                else:slen = len(textx);elen = len(textx) + 5
-                arrData = {'S':str(slen), 'E':str(elen), 'M':mids[mid]}
-                arr.append(arrData)
-                textx += mention
+            textx = ""
+            unicode = ""
+            if isUnicode:
+                for mid in mids:
+                    unicode += str(texts[mids.index(mid)].encode('unicode-escape'))
+                    textx += str(texts[mids.index(mid)])
+                    slen = len(textx) if unicode == textx else len(textx) + unicode.count('U0')
+                    elen = len(textx) + 15
+                    arrData = {'S':str(slen), 'E':str(elen - 4), 'M':mid}
+                    arr.append(arrData)
+                    textx += mention
+            else:
+                for mid in mids:
+                    textx += str(texts[mids.index(mid)])
+                    slen = len(textx)
+                    elen = len(textx) + 15
+                    arrData = {'S':str(slen), 'E':str(elen - 4), 'M':mid}
+                    arr.append(arrData)
+                    textx += mention
             textx += str(texts[len(mids)])
         else:
-            textx = ''
-            slen = len(textx)
-            elen = len(textx) + 18
-            arrData = {'S':str(slen), 'E':str(elen - 4), 'M':mids[0]}
-            arr.append(arrData)
-            textx += mention + str(text)
-        self.sendSquareMessage(to, textx,{'AGENT_LINK': 'line://ti/p/~rynkings__','AGENT_ICON': '','AGENT_NAME': ps,'MENTION': str('{"MENTIONEES":' + json.dumps(arr) + '}')}, 0)
-
-    @loggedIn
-    def sendSquareReplyMention(self, rynId, squareChatMid, text="", mids=[]):
-        arrData = ""
-        arr = []
-        mention = "@Dzin "
-        if mids == []:
-            raise Exception("Invalid mids")
-        if "@!" in text:
-            if text.count("@!") != len(mids):
-                raise Exception("Invalid mids")
-            texts = text.split("@!")
-            textx = ''
-            h = ''
-            for mid in range(len(mids)):
-                h+= str(texts[mid].encode('unicode-escape'))
-                textx += str(texts[mid])
-                if h != textx:
-                    if h.count('U0') % 2 == 0:slen = len(textx)-(h.count('U0')//2);elen = (len(textx)-(h.count('U0')//2)) + 5
-                    elif h.count('U0') % 3 == 0:slen = len(textx)-(h.count('U0')//3);elen = (len(textx)-(h.count('U0')//3)) + 5
-                    else:slen = len(textx)+h.count('U0');elen = len(textx)+h.count('U0') + 5
-                else:slen = len(textx);elen = len(textx) + 13
-                arrData = {'S':str(slen), 'E':str(elen), 'M':mids[mid]}
-                arr.append(arrData)
-                textx += mention
-            textx += str(texts[len(mids)])
-        else:
-            textx = ''
-            slen = len(textx)
-            elen = len(textx) + 18
-            arrData = {'S':str(slen), 'E':str(elen - 4), 'M':mids[0]}
-            arr.append(arrData)
-            textx += mention + str(text)
-        self.sendSquareReplyMessage(rynId, squareChatMid, textx, {'MENTION': str('{"MENTIONEES":' + json.dumps(arr) + '}')}, 0)
+            raise Exception("Invalid mention position")
+        self.sendSquareMessage(to, textx, {'MENTION': str('{"MENTIONEES":' + json.dumps(arr) + '}')}, 0)
 
     @loggedIn
     def sendSquareSticker(self, squareChatMid, packageId, stickerId):
@@ -248,15 +192,6 @@ class Square(object):
             'STKID': stickerId
         }
         return self.sendSquareMessage(squareChatMid, '', contentMetadata, 7)
-
-    @loggedIn
-    def sendSquareReplySticker(self, rynId, squareChatMid, packageId, stickerId):
-        contentMetadata = {
-            'STKVER': '100',
-            'STKPKGID': packageId,
-            'STKID': stickerId
-        }
-        return self.sendSquareReplyMessage(rynId, squareChatMid, '', contentMetadata, 7)
         
     @loggedIn
     def sendSquareContact(self, squareChatMid, mid):

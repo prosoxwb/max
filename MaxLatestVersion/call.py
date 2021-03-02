@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from TEAM_BOT_MAX.ttypes import MediaType
+from akad.ttypes import MediaType
 
 def loggedIn(func):
     def checkLogin(*args, **kwargs):
         if args[0].isLogin:
             return func(*args, **kwargs)
         else:
-            args[0].callback.other('You want to call the function, you must login to TEAMBOTMAXv2')
+            args[0].callback.default('You want to call the function, you must login to LINE')
     return checkLogin
     
 class Call(object):

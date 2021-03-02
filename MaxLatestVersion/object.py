@@ -7,16 +7,14 @@ def loggedIn(func):
         if args[0].isLogin:
             return func(*args, **kwargs)
         else:
-            args[0].callback.other('You want to call the function, you must login to TEAMBOTMAXv2')
+            args[0].callback.default('You want to call the function, you must login to LINE')
     return checkLogin
     
 class Object(object):
 
     def __init__(self):
         if self.isLogin == True:
-            self.log("( %s ) : ยืนยันการเข้าสู่ระบบสำเร็จ" % self.profile.displayName)
-#            MAX = "uc14c3d87a1123df7c8ffa9d7402e59a2"
-#            self.findAndAddContactsByMid(MAX)
+            self.log("[%s] : Login success" % self.profile.displayName)
 
     """Group"""
 
