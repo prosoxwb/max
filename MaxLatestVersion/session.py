@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .transport import THttpClient
 from thrift.protocol import TCompactProtocol
-from akad import AuthService, TalkService, ChannelService, CallService, SquareService, ShopService
+from TEAM_BOT_MAX import AuthService, TalkService, ChannelService, CallService, SquareService, LiffService, ShopService
 
 class Session:
 
