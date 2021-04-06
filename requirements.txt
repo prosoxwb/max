@@ -30,3 +30,4 @@ httplib2
 python-axolotl-curve25519
 pycryptodome
 akad
+lesting.api.client
