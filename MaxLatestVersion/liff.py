@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from akad.ttypes import (
+from TEAM_BOT_MAX.ttypes import (
     LiffViewRequest,
     LiffContext,
     LiffChatContext,
